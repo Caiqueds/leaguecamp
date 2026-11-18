@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!-- Barra do topo, usada em todas as páginas -->
+<header th:fragment="cabecalho" class="topo">
+    <a th:href="@{/}" class="marca">LeagueCamp</a>
+    <nav>
+        <a th:href="@{/gestao}">Gestão</a>
+        <a th:href="@{/consultas}">Consultas</a>
+    </nav>
+</header>
+
+<!-- Abas das áreas da Gestão. O parâmetro "ativo" marca a aba da página atual -->
+<nav th:fragment="menuGestao(ativo)" class="menu-gestao">
+    <a th:href="@{/gestao/campeonatos}" th:classappend="${ativo == 'campeonatos'} ? 'ativo'">Campeonatos</a>
+    <a th:href="@{/gestao/clubes}" th:classappend="${ativo == 'clubes'} ? 'ativo'">Clubes</a>
+    <a th:href="@{/gestao/estadios}" th:classappend="${ativo == 'estadios'} ? 'ativo'">Estádios</a>
+    <a th:href="@{/gestao/arbitros}" th:classappend="${ativo == 'arbitros'} ? 'ativo'">Árbitros</a>
+    <a th:href="@{/gestao/elenco}" th:classappend="${ativo == 'elenco'} ? 'ativo'">Elenco</a>
+    <a th:href="@{/gestao/partidas}" th:classappend="${ativo == 'partidas'} ? 'ativo'">Partidas</a>
+    <a th:href="@{/gestao/sumula}" th:classappend="${ativo == 'sumula'} ? 'ativo'">Súmula</a>
+</nav>
+
+<!-- Mensagens de sucesso e de erro vindas do controller -->
+<div th:fragment="alertas">
+    <div th:if="${sucesso}" class="alerta sucesso" th:text="${sucesso}"></div>
+    <div th:if="${erro}" class="alerta erro" th:text="${erro}"></div>
+</div>
+
+</body>
+</html>

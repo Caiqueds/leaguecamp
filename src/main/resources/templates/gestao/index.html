@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Gestão | LeagueCamp</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<header th:replace="~{fragments/cabecalho :: cabecalho}"></header>
+
+<main class="container">
+    <h1>Gestão</h1>
+    <p class="subtitulo">Escolha o que você quer cadastrar ou editar.</p>
+
+    <div class="grade">
+        <a class="cartao-link" th:href="@{/gestao/campeonatos}">
+            <h2>Campeonatos</h2>
+            <p>Criar campeonatos e inscrever os clubes participantes.</p>
+        </a>
+        <a class="cartao-link" th:href="@{/gestao/clubes}">
+            <h2>Clubes</h2>
+            <p>Nome e cidade de cada clube.</p>
+        </a>
+        <a class="cartao-link" th:href="@{/gestao/estadios}">
+            <h2>Estádios</h2>
+            <p>Estádios, cidades e capacidades.</p>
+        </a>
+        <a class="cartao-link" th:href="@{/gestao/arbitros}">
+            <h2>Árbitros</h2>
+            <p>Cadastro dos árbitros.</p>
+        </a>
+        <a class="cartao-link" th:href="@{/gestao/elenco}">
+            <h2>Elenco</h2>
+            <p>Atletas e comissão técnica de cada clube.</p>
+        </a>
+        <a class="cartao-link" th:href="@{/gestao/partidas}">
+            <h2>Partidas</h2>
+            <p>Agendar jogos, registrar placar e escalar árbitros.</p>
+        </a>
+        <a class="cartao-link" th:href="@{/gestao/sumula}">
+            <h2>Súmula</h2>
+            <p>Gols e cartões de cada partida.</p>
+        </a>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/rodape :: rodape}"></footer>
+</body>
+</html>

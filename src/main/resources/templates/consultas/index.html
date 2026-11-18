@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Consultas | LeagueCamp</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<header th:replace="~{fragments/cabecalho :: cabecalho}"></header>
+
+<main class="container largo">
+    <h1>Consultas</h1>
+    <p class="subtitulo">Escolha uma consulta, informe os filtros e veja o resultado junto com o SQL executado. Esta página não altera nenhum dado.</p>
+
+    <div class="layout-consultas">
+
+        <aside class="lista-consultas">
+            <ol>
+                <li th:each="c : ${consultas}">
+                    <a th:href="@{/consultas/{n}(n=${c.numero()})}"
+                       th:classappend="${consulta != null and consulta.numero() == c.numero()} ? 'ativa'"
+                       th:text="${c.numero() + '. ' + c.titulo()}">1. Consulta</a>
+                </li>
+            </ol>
+        </aside>
+
+        <section class="conteudo-consulta">
+
+            <div th:if="${consulta == null}" class="cartao">
+                <h2>Escolha uma consulta</h2>
+                <p>Use a lista ao lado. Cada consulta mostra o código SQL completo, os filtros que ela precisa e a tabela de resultados.</p>
+            </div>
+            <div th:if="${consulta == null and erro != null}" class="alerta erro" th:text="${erro}"></div>
+
+            <th:block th:if="${consulta != null}">
+                <div class="cartao">
+                    <h2 th:text="${consulta.numero() + '. ' + consulta.titulo()}">1. Consulta</h2>
+                    <p th:text="${consulta.descricao()}">Descrição</p>
+
+                    <form th:action="@{/consultas/{n}(n=${consulta.numero()})}" method="get" class="formulario">
+                        <input type="hidden" name="executar" value="1">
+
+                        <th:block th:each="nomeFiltro : ${consulta.parametros()}" th:switch="${nomeFiltro}">
+
+                            <label th:case="'campeonato'">Campeonato
+                                <select name="campeonato" required>
+                                    <option value="">Selecione</option>
+                                    <option th:each="c : ${campeonatos}" th:value="${c.idCamp()}"
+                                            th:text="${c.nome() + ' ' + c.edicao()}"
+                                            th:selected="${filtros.get('campeonato') == c.idCamp().toString()}">Campeonato</option>
+                                </select>
+                            </label>
+
+                            <label th:case="'clube'">Clube
+                                <select name="clube" required>
+                                    <option value="">Selecione</option>
+                                    <option th:each="c : ${clubes}" th:value="${c.idClube()}" th:text="${c.nome()}"
+                                            th:selected="${filtros.get('clube') == c.idClube().toString()}">Clube</option>
+                                </select>
+                            </label>
+
+                            <label th:case="'partida'">Partida
+                                <select name="partida" required class="largo">
+                                    <option value="">Selecione</option>
+                                    <option th:each="p : ${partidas}" th:value="${p.idPartida()}"
+                                            th:text="${p.nomeCamp() + ' · ' + p.titulo()}"
+                                            th:selected="${filtros.get('partida') == p.idPartida().toString()}">Partida</option>
+                                </select>
+                            </label>
+
+                            <label th:case="'rodada'">Rodada
+                                <input type="number" name="rodada" min="1" required class="curto"
+                                       th:value="${filtros.get('rodada')}">
+                            </label>
+                        </th:block>
+
+                        <button type="submit" class="botao">Executar consulta</button>
+                    </form>
+                </div>
+
+                <div th:if="${erro}" class="alerta erro" th:text="${erro}"></div>
+
+                <div class="cartao">
+                    <div class="titulo-com-acao">
+                        <h3>SQL desta consulta</h3>
+                        <button type="button" class="botao pequeno secundario" id="copiarSql">Copiar SQL</button>
+                    </div>
+                    <pre class="sql"><code id="textoSql" th:text="${consulta.sql()}">SELECT ...</code></pre>
+                </div>
+
+                <div class="cartao" th:if="${resultado != null}">
+                    <h3>Resultado</h3>
+                    <p class="dica" th:text="${#lists.size(resultado.linhas())} + ' linha(s) encontrada(s)'">0 linhas</p>
+
+                    <div class="rolagem">
+                        <table>
+                            <thead>
+                            <tr>
+                                <th th:each="coluna : ${resultado.colunas()}"
+                                    th:text="${#strings.capitalize(#strings.replace(coluna, '_', ' '))}">Coluna</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="linha : ${resultado.linhas()}">
+                                <td th:each="valor : ${linha}" th:text="${valor}">valor</td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(resultado.linhas())}">
+                                <td th:colspan="${#lists.size(resultado.colunas())}" class="vazio">
+                                    A consulta rodou, mas não encontrou nenhum registro para esses filtros.
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </th:block>
+        </section>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/rodape :: rodape}"></footer>
+<script th:src="@{/js/consultas.js}"></script>
+</body>
+</html>

@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Elenco | LeagueCamp</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<header th:replace="~{fragments/cabecalho :: cabecalho}"></header>
+
+<main class="container">
+    <nav th:replace="~{fragments/cabecalho :: menuGestao('elenco')}"></nav>
+    <h1>Elenco</h1>
+    <div th:replace="~{fragments/cabecalho :: alertas}"></div>
+
+    <section class="cartao">
+        <h2 th:text="${membroEdicao != null ? 'Editar ' + membroEdicao.tipoTexto().toLowerCase() : 'Novo membro do elenco'}">Novo membro do elenco</h2>
+
+        <form th:action="@{/gestao/elenco/salvar}" method="post" class="formulario">
+            <input type="hidden" name="idEq" th:if="${membroEdicao != null}" th:value="${membroEdicao.idEq()}">
+
+            <!-- Ao editar, o tipo fica fixo. Ao cadastrar, a pessoa escolhe -->
+            <input type="hidden" name="tipo" id="tipoFixo" th:if="${membroEdicao != null}" th:value="${membroEdicao.tipo()}">
+            <label th:if="${membroEdicao == null}">Tipo
+                <select name="tipo" id="tipo">
+                    <option value="ATLETA">Atleta</option>
+                    <option value="COMISSAO_TECNICA">Comissão técnica</option>
+                </select>
+            </label>
+
+            <label>Nome
+                <input type="text" name="pnome" maxlength="15" required
+                       th:value="${membroEdicao != null ? membroEdicao.pnome() : ''}">
+            </label>
+            <label>Sobrenome
+                <input type="text" name="unome" maxlength="25" required
+                       th:value="${membroEdicao != null ? membroEdicao.unome() : ''}">
+            </label>
+            <label>Data de nascimento
+                <input type="date" name="dataNasc" required
+                       th:value="${membroEdicao != null ? membroEdicao.dataNascInput() : ''}">
+            </label>
+            <label>Clube
+                <select name="idClube" required>
+                    <option th:each="c : ${clubes}" th:value="${c.idClube()}" th:text="${c.nome()}"
+                            th:selected="${(membroEdicao != null and membroEdicao.idClube() == c.idClube())
+                                        or (membroEdicao == null and clubeFiltro != null and clubeFiltro == c.idClube())}">Clube</option>
+                </select>
+            </label>
+
+            <!-- Campos que só existem para atletas -->
+            <label class="campos-atleta">Posição
+                <select name="posicao">
+                    <option th:each="p : ${ {'Goleiro','Zagueiro','Lateral','Volante','Meia','Atacante'} }"
+                            th:value="${p}" th:text="${p}"
+                            th:selected="${membroEdicao != null and p == membroEdicao.posicao()}">Posição</option>
+                </select>
+            </label>
+            <label class="campos-atleta">Camisa
+                <input type="number" name="numeroCamisa" min="1" max="99"
+                       th:value="${membroEdicao != null ? membroEdicao.numeroCamisa() : ''}">
+            </label>
+
+            <!-- Campo que só existe para a comissão técnica -->
+            <label class="campos-comissao">Função
+                <select name="funcao">
+                    <option th:each="f : ${ {'TECNICO','AUXILIAR_TECNICO','PREPARADOR_FISICO','TREINADOR_GOLEIROS','MEDICO'} }"
+                            th:value="${f}" th:text="${f}"
+                            th:selected="${membroEdicao != null and f == membroEdicao.funcao()}">Função</option>
+                </select>
+            </label>
+
+            <div class="acoes">
+                <button type="submit" class="botao"
+                        th:text="${membroEdicao != null ? 'Salvar alterações' : 'Cadastrar'}">Cadastrar</button>
+                <a th:if="${membroEdicao != null}" th:href="@{/gestao/elenco}" class="botao secundario">Cancelar</a>
+            </div>
+        </form>
+    </section>
+
+    <section class="cartao">
+        <h2>Pessoas do elenco</h2>
+
+        <form th:action="@{/gestao/elenco}" method="get" class="formulario filtro">
+            <label>Mostrar clube
+                <select name="clube" onchange="this.form.submit()">
+                    <option value="">Todos os clubes</option>
+                    <option th:each="c : ${clubes}" th:value="${c.idClube()}" th:text="${c.nome()}"
+                            th:selected="${clubeFiltro != null and clubeFiltro == c.idClube()}">Clube</option>
+                </select>
+            </label>
+        </form>
+
+        <table>
+            <thead>
+            <tr><th>Nome</th><th>Clube</th><th>Tipo</th><th>Posição ou função</th><th>Nascimento</th><th>Ações</th></tr>
+            </thead>
+            <tbody>
+            <tr th:each="m : ${membros}">
+                <td th:text="${m.nomeCompleto()}">Nome</td>
+                <td th:text="${m.nomeClube()}">Clube</td>
+                <td th:text="${m.tipoTexto()}">Atleta</td>
+                <td th:text="${m.detalhe()}">Atacante · camisa 9</td>
+                <td th:text="${m.dataNascTexto()}">01/01/1990</td>
+                <td>
+                    <div class="acoes">
+                        <a th:href="@{/gestao/elenco(editar=${m.idEq()}, clube=${clubeFiltro})}" class="botao pequeno">Editar</a>
+                        <form th:action="@{/gestao/elenco/{id}/excluir(id=${m.idEq()}, clube=${clubeFiltro})}" method="post"
+                              onsubmit="return confirm('Excluir esta pessoa do elenco?');">
+                            <button type="submit" class="botao pequeno perigo">Excluir</button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(membros)}">
+                <td colspan="6" class="vazio">Nenhuma pessoa cadastrada para este filtro.</td>
+            </tr>
+            </tbody>
+        </table>
+    </section>
+</main>
+
+<footer th:replace="~{fragments/rodape :: rodape}"></footer>
+
+<script>
+    // Mostra só os campos do tipo escolhido (atleta ou comissão técnica)
+    const campoTipo = document.getElementById('tipo') || document.getElementById('tipoFixo');
+
+    function alternarCampos() {
+        const atleta = campoTipo.value === 'ATLETA';
+        document.querySelectorAll('.campos-atleta').forEach(function (bloco) {
+            bloco.style.display = atleta ? '' : 'none';
+            bloco.querySelectorAll('input, select').forEach(function (campo) {
+                campo.disabled = !atleta;
+                campo.required = atleta && campo.tagName === 'INPUT';
+            });
+        });
+        document.querySelectorAll('.campos-comissao').forEach(function (bloco) {
+            bloco.style.display = atleta ? 'none' : '';
+            bloco.querySelectorAll('select').forEach(function (campo) {
+                campo.disabled = atleta;
+            });
+        });
+    }
+
+    campoTipo.addEventListener('change', alternarCampos);
+    alternarCampos();
+</script>
+</body>
+</html>

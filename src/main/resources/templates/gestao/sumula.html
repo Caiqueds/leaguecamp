@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Súmula | LeagueCamp</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<header th:replace="~{fragments/cabecalho :: cabecalho}"></header>
+
+<main class="container">
+    <nav th:replace="~{fragments/cabecalho :: menuGestao('sumula')}"></nav>
+    <h1>Súmula</h1>
+    <div th:replace="~{fragments/cabecalho :: alertas}"></div>
+
+    <section class="cartao">
+        <h2>Escolha a partida</h2>
+        <form th:action="@{/gestao/sumula}" method="get" class="formulario">
+            <label>Partida
+                <select name="partida" class="largo" onchange="this.form.submit()">
+                    <option value="">Selecione uma partida</option>
+                    <option th:each="p : ${partidas}" th:value="${p.idPartida()}"
+                            th:text="${p.nomeCamp() + ' · ' + p.titulo() + ' (' + p.dataHoraTexto() + ')'}"
+                            th:selected="${partidaSel != null and partidaSel.idPartida() == p.idPartida()}">Partida</option>
+                </select>
+            </label>
+            <noscript><button type="submit" class="botao">Abrir</button></noscript>
+        </form>
+    </section>
+
+    <th:block th:if="${partidaSel != null}">
+
+        <section class="cartao">
+            <div class="placar-grande">
+                <span class="time" th:text="${partidaSel.nomeCasa()}">Mandante</span>
+                <span class="resultado" th:text="${partidaSel.placar()}">0 x 0</span>
+                <span class="time" th:text="${partidaSel.nomeFora()}">Visitante</span>
+            </div>
+            <p class="subtitulo centro">
+                <span th:text="${partidaSel.nomeCamp()}">Campeonato</span> ·
+                rodada <span th:text="${partidaSel.rodada()}">1</span> ·
+                <span th:text="${partidaSel.dataHoraTexto()}">data</span> ·
+                <span th:text="${partidaSel.statusTexto()}">status</span>
+            </p>
+            <form th:action="@{/gestao/sumula/recalcular}" method="post" class="centro">
+                <input type="hidden" name="idPartida" th:value="${partidaSel.idPartida()}">
+                <button type="submit" class="botao secundario">Recalcular placar pela súmula</button>
+            </form>
+        </section>
+
+        <section class="cartao">
+            <h2 th:text="${eventoEdicao != null ? 'Editar evento' : 'Novo evento'}">Novo evento</h2>
+
+            <form th:action="@{/gestao/sumula/salvar}" method="post" class="formulario">
+                <input type="hidden" name="idPartida" th:value="${partidaSel.idPartida()}">
+                <input type="hidden" name="idSumula" th:if="${eventoEdicao != null}" th:value="${eventoEdicao.idSumula()}">
+
+                <label>Evento
+                    <select name="tipoEvento" required>
+                        <option th:each="t : ${tiposEvento}" th:value="${t}" th:text="${t}"
+                                th:selected="${eventoEdicao != null and eventoEdicao.tipoEvento() == t}">Evento</option>
+                    </select>
+                </label>
+                <label>Minuto
+                    <input type="number" name="min" min="0" max="130" required class="curto"
+                           th:value="${eventoEdicao != null ? eventoEdicao.min() : ''}">
+                </label>
+                <label>Jogador ou membro
+                    <select name="idMembro" required>
+                        <option th:each="m : ${membros}" th:value="${m.idEq()}"
+                                th:text="${m.nomeClube() + ' · ' + m.nomeCompleto() + ' (' + m.detalhe() + ')'}"
+                                th:selected="${eventoEdicao != null and eventoEdicao.idMembro() == m.idEq()}">Pessoa</option>
+                    </select>
+                </label>
+
+                <div class="acoes">
+                    <button type="submit" class="botao"
+                            th:text="${eventoEdicao != null ? 'Salvar alterações' : 'Registrar evento'}">Registrar evento</button>
+                    <a th:if="${eventoEdicao != null}" th:href="@{/gestao/sumula(partida=${partidaSel.idPartida()})}" class="botao secundario">Cancelar</a>
+                </div>
+            </form>
+            <p class="dica">Gol conta para o clube do jogador. Gol contra conta para o clube adversário.</p>
+        </section>
+
+        <section class="cartao">
+            <h2>Eventos da partida</h2>
+            <table>
+                <thead>
+                <tr><th class="num">Minuto</th><th>Evento</th><th>Jogador</th><th>Clube</th><th>Ações</th></tr>
+                </thead>
+                <tbody>
+                <tr th:each="e : ${eventos}">
+                    <td class="num" th:text="|${e.min()}'|">10'</td>
+                    <td th:text="${e.tipoTexto()}">Gol</td>
+                    <td th:text="${e.nomeMembro()}">Jogador</td>
+                    <td th:text="${e.nomeClube()}">Clube</td>
+                    <td>
+                        <div class="acoes">
+                            <a th:href="@{/gestao/sumula(partida=${partidaSel.idPartida()}, editar=${e.idSumula()})}" class="botao pequeno">Editar</a>
+                            <form th:action="@{/gestao/sumula/{id}/excluir(id=${e.idSumula()})}" method="post"
+                                  onsubmit="return confirm('Excluir este evento?');">
+                                <input type="hidden" name="idPartida" th:value="${partidaSel.idPartida()}">
+                                <button type="submit" class="botao pequeno perigo">Excluir</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(eventos)}">
+                    <td colspan="5" class="vazio">Nenhum evento registrado. Use o formulário acima para lançar gols e cartões.</td>
+                </tr>
+                </tbody>
+            </table>
+        </section>
+    </th:block>
+</main>
+
+<footer th:replace="~{fragments/rodape :: rodape}"></footer>
+</body>
+</html>

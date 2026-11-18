@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Campeonatos | LeagueCamp</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<header th:replace="~{fragments/cabecalho :: cabecalho}"></header>
+
+<main class="container">
+    <nav th:replace="~{fragments/cabecalho :: menuGestao('campeonatos')}"></nav>
+    <h1>Campeonatos</h1>
+    <div th:replace="~{fragments/cabecalho :: alertas}"></div>
+
+    <section class="cartao">
+        <h2 th:text="${campeonatoEdicao != null ? 'Editar campeonato' : 'Novo campeonato'}">Novo campeonato</h2>
+
+        <form th:action="@{/gestao/campeonatos/salvar}" method="post" class="formulario">
+            <input type="hidden" name="idCamp" th:if="${campeonatoEdicao != null}"
+                   th:value="${campeonatoEdicao.idCamp()}">
+
+            <label>Nome
+                <input type="text" name="nome" maxlength="50" required
+                       th:value="${campeonatoEdicao != null ? campeonatoEdicao.nome() : ''}">
+            </label>
+            <label>Edição (ano)
+                <input type="number" name="edicao" min="1900" max="2100" required
+                       th:value="${campeonatoEdicao != null ? campeonatoEdicao.edicao() : ''}">
+            </label>
+
+            <div class="acoes">
+                <button type="submit" class="botao"
+                        th:text="${campeonatoEdicao != null ? 'Salvar alterações' : 'Cadastrar campeonato'}">Cadastrar campeonato</button>
+                <a th:if="${campeonatoEdicao != null}" th:href="@{/gestao/campeonatos}" class="botao secundario">Cancelar</a>
+            </div>
+        </form>
+    </section>
+
+    <section class="cartao">
+        <h2>Lista de campeonatos</h2>
+        <table>
+            <thead>
+            <tr><th>Id</th><th>Nome</th><th>Edição</th><th>Ações</th></tr>
+            </thead>
+            <tbody>
+            <tr th:each="c : ${campeonatos}">
+                <td th:text="${c.idCamp()}">1</td>
+                <td th:text="${c.nome()}">Nome</td>
+                <td th:text="${c.edicao()}">2026</td>
+                <td>
+                    <div class="acoes">
+                        <a th:href="@{/gestao/campeonatos(camp=${c.idCamp()})}" class="botao pequeno secundario">Clubes inscritos</a>
+                        <a th:href="@{/gestao/campeonatos(editar=${c.idCamp()})}" class="botao pequeno">Editar</a>
+                        <form th:action="@{/gestao/campeonatos/{id}/excluir(id=${c.idCamp()})}" method="post"
+                              onsubmit="return confirm('Excluir este campeonato?');">
+                            <button type="submit" class="botao pequeno perigo">Excluir</button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(campeonatos)}">
+                <td colspan="4" class="vazio">Nenhum campeonato cadastrado ainda. Use o formulário acima.</td>
+            </tr>
+            </tbody>
+        </table>
+    </section>
+
+    <section class="cartao" th:if="${campSelecionado != null}">
+        <h2 th:text="'Clubes inscritos em ' + ${campSelecionado.nome()} + ' ' + ${campSelecionado.edicao()}">Clubes inscritos</h2>
+
+        <form th:if="${!disponiveis.isEmpty()}"
+              th:action="@{/gestao/campeonatos/{id}/clubes(id=${campSelecionado.idCamp()})}"
+              method="post" class="formulario">
+            <label>Inscrever clube
+                <select name="idClube" required>
+                    <option th:each="d : ${disponiveis}" th:value="${d.idClube()}" th:text="${d.nome()}">Clube</option>
+                </select>
+            </label>
+            <button type="submit" class="botao">Inscrever</button>
+        </form>
+        <p th:if="${disponiveis.isEmpty()}" class="subtitulo">Todos os clubes cadastrados já estão inscritos.</p>
+
+        <table>
+            <thead>
+            <tr><th>Clube</th><th>Cidade</th><th>Ações</th></tr>
+            </thead>
+            <tbody>
+            <tr th:each="i : ${inscritos}">
+                <td th:text="${i.nome()}">Clube</td>
+                <td th:text="${i.cidade()}">Cidade</td>
+                <td>
+                    <form th:action="@{/gestao/campeonatos/{id}/clubes/{idClube}/remover(id=${campSelecionado.idCamp()}, idClube=${i.idClube()})}"
+                          method="post" onsubmit="return confirm('Remover este clube do campeonato?');">
+                        <button type="submit" class="botao pequeno perigo">Remover</button>
+                    </form>
+                </td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(inscritos)}">
+                <td colspan="3" class="vazio">Nenhum clube inscrito neste campeonato.</td>
+            </tr>
+            </tbody>
+        </table>
+    </section>
+</main>
+
+<footer th:replace="~{fragments/rodape :: rodape}"></footer>
+</body>
+</html>

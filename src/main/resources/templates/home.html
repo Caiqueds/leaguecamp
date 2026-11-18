@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>LeagueCamp</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<header th:replace="~{fragments/cabecalho :: cabecalho}"></header>
+
+<main class="container">
+    <h1>Gestor de ligas de futebol</h1>
+    <p class="subtitulo">Cadastre o que acontece no campeonato ou consulte os dados.</p>
+
+    <div class="grade duas">
+        <a class="cartao-link" th:href="@{/gestao}">
+            <h2>Gestão</h2>
+            <p>Cadastrar e editar campeonatos, clubes, elencos, partidas e a súmula de cada jogo.</p>
+        </a>
+        <a class="cartao-link" th:href="@{/consultas}">
+            <h2>Consultas</h2>
+            <p>Ver classificação, artilheiros e outras informações, junto com o SQL de cada consulta.</p>
+        </a>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/rodape :: rodape}"></footer>
+</body>
+</html>

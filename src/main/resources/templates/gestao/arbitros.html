@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Árbitros | LeagueCamp</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<header th:replace="~{fragments/cabecalho :: cabecalho}"></header>
+
+<main class="container">
+    <nav th:replace="~{fragments/cabecalho :: menuGestao('arbitros')}"></nav>
+    <h1>Árbitros</h1>
+    <div th:replace="~{fragments/cabecalho :: alertas}"></div>
+
+    <section class="cartao">
+        <h2 th:text="${arbitroEdicao != null ? 'Editar árbitro' : 'Novo árbitro'}">Novo árbitro</h2>
+
+        <form th:action="@{/gestao/arbitros/salvar}" method="post" class="formulario">
+            <input type="hidden" name="idArb" th:if="${arbitroEdicao != null}" th:value="${arbitroEdicao.idArb()}">
+
+            <label>Nome
+                <input type="text" name="pnome" maxlength="15" required
+                       th:value="${arbitroEdicao != null ? arbitroEdicao.pnome() : ''}">
+            </label>
+            <label>Sobrenome
+                <input type="text" name="unome" maxlength="25" required
+                       th:value="${arbitroEdicao != null ? arbitroEdicao.unome() : ''}">
+            </label>
+            <label>Data de nascimento
+                <input type="date" name="dataNasc" required
+                       th:value="${arbitroEdicao != null ? arbitroEdicao.dataNascInput() : ''}">
+            </label>
+
+            <div class="acoes">
+                <button type="submit" class="botao"
+                        th:text="${arbitroEdicao != null ? 'Salvar alterações' : 'Cadastrar árbitro'}">Cadastrar árbitro</button>
+                <a th:if="${arbitroEdicao != null}" th:href="@{/gestao/arbitros}" class="botao secundario">Cancelar</a>
+            </div>
+        </form>
+    </section>
+
+    <section class="cartao">
+        <h2>Lista de árbitros</h2>
+        <table>
+            <thead>
+            <tr><th>Id</th><th>Nome</th><th>Nascimento</th><th>Ações</th></tr>
+            </thead>
+            <tbody>
+            <tr th:each="a : ${arbitros}">
+                <td th:text="${a.idArb()}">1</td>
+                <td th:text="${a.nomeCompleto()}">Nome</td>
+                <td th:text="${a.dataNascTexto()}">01/01/1980</td>
+                <td>
+                    <div class="acoes">
+                        <a th:href="@{/gestao/arbitros(editar=${a.idArb()})}" class="botao pequeno">Editar</a>
+                        <form th:action="@{/gestao/arbitros/{id}/excluir(id=${a.idArb()})}" method="post"
+                              onsubmit="return confirm('Excluir este árbitro?');">
+                            <button type="submit" class="botao pequeno perigo">Excluir</button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(arbitros)}">
+                <td colspan="4" class="vazio">Nenhum árbitro cadastrado ainda. Use o formulário acima.</td>
+            </tr>
+            </tbody>
+        </table>
+    </section>
+</main>
+
+<footer th:replace="~{fragments/rodape :: rodape}"></footer>
+</body>
+</html>

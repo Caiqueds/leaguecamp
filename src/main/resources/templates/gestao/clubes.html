@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Clubes | LeagueCamp</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<header th:replace="~{fragments/cabecalho :: cabecalho}"></header>
+
+<main class="container">
+    <nav th:replace="~{fragments/cabecalho :: menuGestao('clubes')}"></nav>
+    <h1>Clubes</h1>
+    <div th:replace="~{fragments/cabecalho :: alertas}"></div>
+
+    <section class="cartao">
+        <h2 th:text="${clubeEdicao != null ? 'Editar clube' : 'Novo clube'}">Novo clube</h2>
+
+        <form th:action="@{/gestao/clubes/salvar}" method="post" class="formulario">
+            <input type="hidden" name="idClube" th:if="${clubeEdicao != null}" th:value="${clubeEdicao.idClube()}">
+
+            <label>Nome
+                <input type="text" name="nome" maxlength="50" required
+                       th:value="${clubeEdicao != null ? clubeEdicao.nome() : ''}">
+            </label>
+            <label>Cidade
+                <input type="text" name="cidade" maxlength="50" required
+                       th:value="${clubeEdicao != null ? clubeEdicao.cidade() : ''}">
+            </label>
+
+            <div class="acoes">
+                <button type="submit" class="botao"
+                        th:text="${clubeEdicao != null ? 'Salvar alterações' : 'Cadastrar clube'}">Cadastrar clube</button>
+                <a th:if="${clubeEdicao != null}" th:href="@{/gestao/clubes}" class="botao secundario">Cancelar</a>
+            </div>
+        </form>
+    </section>
+
+    <section class="cartao">
+        <h2>Lista de clubes</h2>
+        <table>
+            <thead>
+            <tr><th>Id</th><th>Nome</th><th>Cidade</th><th>Ações</th></tr>
+            </thead>
+            <tbody>
+            <tr th:each="c : ${clubes}">
+                <td th:text="${c.idClube()}">1</td>
+                <td th:text="${c.nome()}">Nome</td>
+                <td th:text="${c.cidade()}">Cidade</td>
+                <td>
+                    <div class="acoes">
+                        <a th:href="@{/gestao/elenco(clube=${c.idClube()})}" class="botao pequeno secundario">Elenco</a>
+                        <a th:href="@{/gestao/clubes(editar=${c.idClube()})}" class="botao pequeno">Editar</a>
+                        <form th:action="@{/gestao/clubes/{id}/excluir(id=${c.idClube()})}" method="post"
+                              onsubmit="return confirm('Excluir este clube?');">
+                            <button type="submit" class="botao pequeno perigo">Excluir</button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(clubes)}">
+                <td colspan="4" class="vazio">Nenhum clube cadastrado ainda. Use o formulário acima.</td>
+            </tr>
+            </tbody>
+        </table>
+    </section>
+</main>
+
+<footer th:replace="~{fragments/rodape :: rodape}"></footer>
+</body>
+</html>

@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Estádios | LeagueCamp</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<header th:replace="~{fragments/cabecalho :: cabecalho}"></header>
+
+<main class="container">
+    <nav th:replace="~{fragments/cabecalho :: menuGestao('estadios')}"></nav>
+    <h1>Estádios</h1>
+    <div th:replace="~{fragments/cabecalho :: alertas}"></div>
+
+    <section class="cartao">
+        <h2 th:text="${estadioEdicao != null ? 'Editar estádio' : 'Novo estádio'}">Novo estádio</h2>
+
+        <form th:action="@{/gestao/estadios/salvar}" method="post" class="formulario">
+            <input type="hidden" name="idEstadio" th:if="${estadioEdicao != null}" th:value="${estadioEdicao.idEstadio()}">
+
+            <label>Nome
+                <input type="text" name="nome" maxlength="50" required
+                       th:value="${estadioEdicao != null ? estadioEdicao.nome() : ''}">
+            </label>
+            <label>Cidade
+                <input type="text" name="cidade" maxlength="50" required
+                       th:value="${estadioEdicao != null ? estadioEdicao.cidade() : ''}">
+            </label>
+            <label>Capacidade
+                <input type="number" name="capacidade" min="0" required
+                       th:value="${estadioEdicao != null ? estadioEdicao.capacidade() : ''}">
+            </label>
+
+            <div class="acoes">
+                <button type="submit" class="botao"
+                        th:text="${estadioEdicao != null ? 'Salvar alterações' : 'Cadastrar estádio'}">Cadastrar estádio</button>
+                <a th:if="${estadioEdicao != null}" th:href="@{/gestao/estadios}" class="botao secundario">Cancelar</a>
+            </div>
+        </form>
+    </section>
+
+    <section class="cartao">
+        <h2>Lista de estádios</h2>
+        <table>
+            <thead>
+            <tr><th>Id</th><th>Nome</th><th>Cidade</th><th class="num">Capacidade</th><th>Ações</th></tr>
+            </thead>
+            <tbody>
+            <tr th:each="e : ${estadios}">
+                <td th:text="${e.idEstadio()}">1</td>
+                <td th:text="${e.nome()}">Nome</td>
+                <td th:text="${e.cidade()}">Cidade</td>
+                <td class="num" th:text="${#numbers.formatInteger(e.capacidade(), 1, 'POINT')}">50.000</td>
+                <td>
+                    <div class="acoes">
+                        <a th:href="@{/gestao/estadios(editar=${e.idEstadio()})}" class="botao pequeno">Editar</a>
+                        <form th:action="@{/gestao/estadios/{id}/excluir(id=${e.idEstadio()})}" method="post"
+                              onsubmit="return confirm('Excluir este estádio?');">
+                            <button type="submit" class="botao pequeno perigo">Excluir</button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(estadios)}">
+                <td colspan="5" class="vazio">Nenhum estádio cadastrado ainda. Use o formulário acima.</td>
+            </tr>
+            </tbody>
+        </table>
+    </section>
+</main>
+
+<footer th:replace="~{fragments/rodape :: rodape}"></footer>
+</body>
+</html>

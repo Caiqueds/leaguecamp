@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Partidas | LeagueCamp</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<header th:replace="~{fragments/cabecalho :: cabecalho}"></header>
+
+<main class="container largo">
+    <nav th:replace="~{fragments/cabecalho :: menuGestao('partidas')}"></nav>
+    <h1>Partidas</h1>
+    <div th:replace="~{fragments/cabecalho :: alertas}"></div>
+
+    <section class="cartao">
+        <h2 th:text="${partidaEdicao != null ? 'Editar partida' : 'Nova partida'}">Nova partida</h2>
+
+        <form th:action="@{/gestao/partidas/salvar}" method="post" class="formulario">
+            <input type="hidden" name="idPartida" th:if="${partidaEdicao != null}" th:value="${partidaEdicao.idPartida()}">
+
+            <label>Campeonato
+                <select name="idCamp" required>
+                    <option th:each="c : ${campeonatos}" th:value="${c.idCamp()}"
+                            th:text="${c.nome() + ' ' + c.edicao()}"
+                            th:selected="${(partidaEdicao != null and partidaEdicao.idCamp() == c.idCamp())
+                                        or (partidaEdicao == null and filtroCampeonato != null and filtroCampeonato == c.idCamp())}">Campeonato</option>
+                </select>
+            </label>
+            <label>Rodada
+                <input type="number" name="rodada" min="1" required class="curto"
+                       th:value="${partidaEdicao != null ? partidaEdicao.rodada() : ''}">
+            </label>
+            <label>Data e hora
+                <input type="datetime-local" name="dataHora" required
+                       th:value="${partidaEdicao != null ? partidaEdicao.dataHoraInput() : ''}">
+            </label>
+            <label>Mandante
+                <select name="idClubeCasa" required>
+                    <option th:each="c : ${clubes}" th:value="${c.idClube()}" th:text="${c.nome()}"
+                            th:selected="${partidaEdicao != null and partidaEdicao.idClubeCasa() == c.idClube()}">Clube</option>
+                </select>
+            </label>
+            <label>Visitante
+                <select name="idClubeFora" required>
+                    <option th:each="c : ${clubes}" th:value="${c.idClube()}" th:text="${c.nome()}"
+                            th:selected="${partidaEdicao != null and partidaEdicao.idClubeFora() == c.idClube()}">Clube</option>
+                </select>
+            </label>
+            <label>Estádio
+                <select name="idEstadio" required>
+                    <option th:each="e : ${estadios}" th:value="${e.idEstadio()}" th:text="${e.nome()}"
+                            th:selected="${partidaEdicao != null and partidaEdicao.idEstadio() == e.idEstadio()}">Estádio</option>
+                </select>
+            </label>
+            <label>Gols do mandante
+                <input type="number" name="golsCasa" min="0" required class="curto"
+                       th:value="${partidaEdicao != null ? partidaEdicao.golsCasa() : 0}">
+            </label>
+            <label>Gols do visitante
+                <input type="number" name="golsFora" min="0" required class="curto"
+                       th:value="${partidaEdicao != null ? partidaEdicao.golsFora() : 0}">
+            </label>
+            <label>Status
+                <select name="status" required>
+                    <option th:each="s : ${statusLista}" th:value="${s}" th:text="${s}"
+                            th:selected="${partidaEdicao != null and partidaEdicao.status() == s}">Status</option>
+                </select>
+            </label>
+
+            <div class="acoes">
+                <button type="submit" class="botao"
+                        th:text="${partidaEdicao != null ? 'Salvar alterações' : 'Agendar partida'}">Agendar partida</button>
+                <a th:if="${partidaEdicao != null}" th:href="@{/gestao/partidas}" class="botao secundario">Cancelar</a>
+            </div>
+        </form>
+    </section>
+
+    <section class="cartao">
+        <h2>Lista de partidas</h2>
+
+        <form th:action="@{/gestao/partidas}" method="get" class="formulario filtro">
+            <label>Campeonato
+                <select name="campeonato">
+                    <option value="">Todos</option>
+                    <option th:each="c : ${campeonatos}" th:value="${c.idCamp()}" th:text="${c.nome() + ' ' + c.edicao()}"
+                            th:selected="${filtroCampeonato != null and filtroCampeonato == c.idCamp()}">Campeonato</option>
+                </select>
+            </label>
+            <label>Rodada
+                <input type="number" name="rodada" min="1" class="curto" th:value="${filtroRodada}">
+            </label>
+            <label>Status
+                <select name="status">
+                    <option value="">Todos</option>
+                    <option th:each="s : ${statusLista}" th:value="${s}" th:text="${s}"
+                            th:selected="${filtroStatus != null and filtroStatus == s}">Status</option>
+                </select>
+            </label>
+            <button type="submit" class="botao secundario">Filtrar</button>
+        </form>
+
+        <table>
+            <thead>
+            <tr><th>Rodada</th><th>Data</th><th>Jogo</th><th>Placar</th><th>Estádio</th><th>Status</th><th>Ações</th></tr>
+            </thead>
+            <tbody>
+            <tr th:each="p : ${partidas}">
+                <td th:text="${p.rodada()}">1</td>
+                <td th:text="${p.dataHoraTexto()}">01/01/2026 16:00</td>
+                <td>
+                    <span th:text="${p.nomeCasa()} + ' x ' + ${p.nomeFora()}">A x B</span><br>
+                    <small th:text="${p.nomeCamp()}">Campeonato</small>
+                </td>
+                <td class="placar" th:text="${p.placar()}">0 x 0</td>
+                <td th:text="${p.nomeEstadio()}">Estádio</td>
+                <td><span class="selo" th:classappend="'status-' + ${p.status()}" th:text="${p.statusTexto()}">Agendada</span></td>
+                <td>
+                    <div class="acoes">
+                        <a th:href="@{/gestao/partidas(arbitros=${p.idPartida()}, campeonato=${filtroCampeonato}, rodada=${filtroRodada}, status=${filtroStatus})}" class="botao pequeno secundario">Árbitros</a>
+                        <a th:href="@{/gestao/sumula(partida=${p.idPartida()})}" class="botao pequeno secundario">Súmula</a>
+                        <a th:href="@{/gestao/partidas(editar=${p.idPartida()}, campeonato=${filtroCampeonato}, rodada=${filtroRodada}, status=${filtroStatus})}" class="botao pequeno">Editar</a>
+                        <form th:action="@{/gestao/partidas/{id}/excluir(id=${p.idPartida()})}" method="post"
+                              onsubmit="return confirm('Excluir esta partida, a súmula e a escalação de árbitros?');">
+                            <button type="submit" class="botao pequeno perigo">Excluir</button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(partidas)}">
+                <td colspan="7" class="vazio">Nenhuma partida encontrada. Cadastre uma acima ou mude os filtros.</td>
+            </tr>
+            </tbody>
+        </table>
+    </section>
+
+    <section class="cartao" th:if="${partidaArbitros != null}">
+        <h2 th:text="'Árbitros de ' + ${partidaArbitros.titulo()}">Árbitros da partida</h2>
+
+        <form th:action="@{/gestao/partidas/{id}/arbitros(id=${partidaArbitros.idPartida()})}" method="post" class="formulario">
+            <label>Árbitro
+                <select name="idArb" required>
+                    <option th:each="a : ${todosArbitros}" th:value="${a.idArb()}" th:text="${a.nomeCompleto()}">Árbitro</option>
+                </select>
+            </label>
+            <label>Função
+                <select name="funcao" required>
+                    <option th:each="f : ${funcoesArbitro}" th:value="${f}" th:text="${f}">Função</option>
+                </select>
+            </label>
+            <button type="submit" class="botao">Escalar</button>
+        </form>
+        <p class="dica">Para mudar a função de um árbitro já escalado, escale o mesmo árbitro com a nova função.</p>
+
+        <table>
+            <thead>
+            <tr><th>Árbitro</th><th>Função</th><th>Ações</th></tr>
+            </thead>
+            <tbody>
+            <tr th:each="e : ${escalacao}">
+                <td th:text="${e.nomeArbitro()}">Nome</td>
+                <td th:text="${e.funcaoTexto()}">Árbitro principal</td>
+                <td>
+                    <form th:action="@{/gestao/partidas/{id}/arbitros/{idArb}/remover(id=${partidaArbitros.idPartida()}, idArb=${e.idArb()})}"
+                          method="post" onsubmit="return confirm('Remover este árbitro da partida?');">
+                        <button type="submit" class="botao pequeno perigo">Remover</button>
+                    </form>
+                </td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(escalacao)}">
+                <td colspan="3" class="vazio">Nenhum árbitro escalado nesta partida.</td>
+            </tr>
+            </tbody>
+        </table>
+    </section>
+</main>
+
+<footer th:replace="~{fragments/rodape :: rodape}"></footer>
+</body>
+</html>
